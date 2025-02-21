@@ -1,0 +1,281 @@
+# copy on this link <- https://www.openicpsr.org/openicpsr/project/185941/version/V2/view?path=/openicpsr/185941/fcr:versions/V2/for_students.zip&type=file
+
+#Download the file, open it and run the learning.csv file
+
+setwd("/Users/ambergonzalezpacheco/Econ 124")
+data2 <- read.csv("learning.csv")
+View(data2)
+data<- data2[, -c(1:2)]
+head(data)
+#View(data)
+length(data)
+
+
+#Section 1: Data/summary statistics
+data$race<-factor(data$race)
+levels(data$race)
+
+data$sex<-factor(data$sex)
+levels(data$sex)
+
+data$g1_educ<-factor(data$g1_educ)
+levels(data$g1_educ)
+
+data$g2_educ<-factor(data$g2_educ)
+levels(data$g2_educ)
+
+data$g3_educ<-factor(data$g3_educ)
+levels(data$g3_educ)
+
+OLS_dev <- function(y, pred){
+  return(sum(y-pred)^2)
+}
+
+
+# summary statistics
+
+educcol <- c('blue', 'red', 'gold', 'green')
+
+plot(g3_log_income ~ g2_log_income, data=data, col=educcol[data$g2_educ])
+legend('bottomleft', legend=c('College', 'High school', 'Less than high school', 'Some college'), col=educcol, pch=20, bty='n')
+data$g2_college <- (data$g2_educ == 'College')
+data$g2_somecol <- (data$g2_educ == 'Some college')
+data$g2_HS <- (data$g2_educ == 'High school')
+data$g2_college <- (data$g2_educ == 'College')
+data$g2_somecol <- (data$g2_educ == 'Some college')
+data$g2_HS <- (data$g2_educ == 'High school')
+OLS_g2_educ <- glm(g3_log_income ~ g2_log_income + g1_log_income + g2_college + g2_somecol + g2_HS, data=data)
+summary(OLS_g2_educ)
+betas <- coef(OLS_g2_educ, s='lambda.min')
+nonzero_betahats <- betas[betas != 0]
+length(nonzero_betahats)
+head(nonzero_betahats)
+data$g1_college <- (data$g1_educ == 'College')
+data$g1_somecol <- (data$g1_educ == 'Some college')
+data$g1_HS <- (data$g1_educ == 'High school')
+
+OLS_g1_educ <- glm(g3_log_income ~ g2_log_income + g1_log_income + g1_college + g1_somecol + g1_HS, data=data)
+summary(OLS_g1_educ)
+betas2 <- coef(OLS_g1_educ, s='lambda.min')
+nonzero_betahats2 <- betas2[betas2 != 0]
+length(nonzero_betahats2)
+head(nonzero_betahats2)
+
+plot(g3_log_income ~ g2_log_income, data=data, col=educcol[data$g1_educ])
+legend('bottomleft', legend=c('College', 'High school', 'Less than high school', 'Some college'), col=educcol, pch=20, bty='n')
+par(mar=c(6,2,6,2), mfrow=c(1,3)) 
+plot(g3_log_income ~ g2_log_income, data=data, col=educcol[data$g2_educ])
+legend('bottomleft', legend=c('College', 'High school', 'Less than high school', 'Some college'), col=educcol, pch=20, bty='n')
+
+plot(g3_log_income ~ g2_log_income, data=data, col=educcol[data$g1_educ])
+legend('bottomleft', legend=c('College', 'High school', 'Less than high school', 'Some college'), col=educcol, pch=20, bty='n')
+
+
+##################################################
+#Section 2 Picking the Model
+set.seed(0)
+n <- nrow(data)
+K<-4 
+random_folds<- rep(1:K, each = ceiling(n/K))[sample(1:n)]
+store_results <-data.frame(full = rep(NA, K), sub = rep(NA,K))
+
+for (k in 1:K) {
+  
+  training_set <-data[random_folds !=k, ]
+  test_set <-data[random_folds == k, ]
+  OLS_full<-glm(g3_log_income ~ ., data = training_set)
+  pred_full <-predict(OLS_full, test_set, type="response")
+  OLS_sub<-glm(g3_log_income ~ g2_log_income + g3_educ + race, data = training_set)
+  pred_sub <-predict(OLS_sub, test_set, type="response")
+  
+  store_results$full[k] <- OLS_dev(test_set$g3_log_income, pred_full)
+  store_results$sub[k] <- OLS_dev(test_set$g3_log_income, pred_sub)
+}
+store_results
+colMeans(store_results)
+
+######################################################
+
+
+####################################################
+#Section 3 Fixed Split
+set.seed(0)
+test_indices2 <- sample(1:nrow(data), size = round(nrow(data)*0.3))
+training_set2<- data[-test_indices2,]
+test_set2<-data[test_indices2, ]
+#############################################################
+#Section 4 Fixed Split GLM
+
+OLS_modelF <- glm(g3_log_income ~ g2_log_income + g3_educ + race, data=training_set2[, -1])
+
+cat('In sample R^2:', 1-OLS_modelF$deviance/OLS_modelF$null.deviance, '\n', sep='')
+
+predF<- predict(OLS_modelF, newdata=test_set2[, -1])
+devOOS <- sum((test_set2$g3_log_income - predF)^2)
+NullOOS <- sum((test_set2$g3_log_income - mean(training_set2$g3_log_income))^2)
+OOS_R2 <- 1 - (devOOS/NullOOS)
+cat('Out of Sample R2:', OOS_R2,'.\n', sep='')
+
+##########################################################
+#Section 5 Sample Split CV for Lasso Ridge Interaction
+set.seed(0)
+SS.cv.lassofold <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=training_set2[,-1], nfolds=4) 
+SS.cv.ridge <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=training_set2[,-1], nfold = 4, alpha = 0)
+
+
+
+SS.IS_lasso_dev <- OLS_dev(training_set2$g3_log_income, predict(SS.cv.lassofold, training_set2[,-1], s='lambda.min'))
+SS.IS_null_dev <- OLS_dev(training_set2$g3_log_income, mean(training_set2$g3_log_income))
+1-SS.IS_lasso_dev/SS.IS_null_dev
+
+
+
+SS.OOS_lasso_dev<- OLS_dev(test_set2$g3_log_income, predict(SS.cv.lassofold, test_set2[,-1], s='lambda.min'))
+
+SS.OOS_null_dev <- OLS_dev(test_set2$g3_log_income, mean(training_set2$g3_log_income))
+1-SS.OOS_lasso_dev/SS.OOS_null_dev
+
+
+#ridge
+SS.IS_ridge_dev <- OLS_dev(training_set2$g3_log_income, predict(SS.cv.ridge, training_set2[,-1], s='lambda.min'))
+1-SS.IS_ridge_dev/SS.IS_null_dev
+
+SS.OOS_ridge_dev<- OLS_dev(test_set2$g3_log_income, predict(SS.cv.ridge, test_set2[,-1], s='lambda.min'))
+1-SS.OOS_ridge_dev/SS.OOS_null_dev
+
+#interaction
+
+set.seed(0)
+SS.big_lasso_model <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g1_log_income + g3_educ + (g2_log_income + g1_log_income)^2 + g1_educ + g2_educ + (g1_educ + g3_educ + g2_educ)^2, data=training_set[,-1], nfold=4)
+
+
+SS.Int_IS_dev <- OLS_dev(training_set2$g3_log_income, predict(SS.big_lasso_model, training_set2[,-1], s='lambda.min'))
+SS.IS_null_dev <- OLS_dev(training_set2$g3_log_income, mean(training_set2$g3_log_income))
+1-SS.Int_IS_dev/SS.IS_null_dev
+
+SS.Int_OOS_dev<- OLS_dev(test_set2$g3_log_income, predict(SS.big_lasso_model, test_set2[,-1], s='lambda.min'))
+SS.OOS_null_dev <- OLS_dev(test_set2$g3_log_income, mean(training_set2$g3_log_income))
+1-SS.Int_OOS_dev/SS.OOS_null_dev
+
+
+##############################################################
+#Section 6 No OLS Lasso Ridge Interaction
+set.seed(0)
+final_lasso <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=data[,-1], nfold = 4)
+final_ridge <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=data[,-1], nfold = 4, alpha=0)
+final_big_lasso_model <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g1_log_income + g3_educ + (g2_log_income + g1_log_income)^2 + g1_educ + g2_educ + (g1_educ + g3_educ + g2_educ)^2, data=data[,-1], nfold=4)
+
+
+1 - final_lasso$cvm[final_lasso$index[1,1]]/final_lasso$cvm[1]
+1 - final_ridge$cvm[final_ridge$index[1,1]]/final_ridge$cvm[1]
+1 - final_big_lasso_model$cvm[final_big_lasso_model$index[1,1]]/final_big_lasso_model$cvm[1]
+
+
+
+#now we compare the IS and OOS dev for Ridge and Lasso ######################################################################################
+#Section 7 CV with Section 1 Training Set
+set.seed(0)
+cv.lassofold <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=training_set[,-1], nfolds=4) 
+cv.ridge <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g3_educ + race, data=training_set[,-1], nfold = 4, alpha = 0)
+
+IS_lasso_dev <- OLS_dev(training_set$g3_log_income, predict(cv.lassofold, training_set[,-1], s='lambda.min'))
+IS_null_dev <- OLS_dev(training_set$g3_log_income, mean(training_set$g3_log_income))
+1-IS_lasso_dev/IS_null_dev
+
+
+OOS_lasso_dev<- OLS_dev(test_set$g3_log_income, predict(cv.lassofold, test_set[,-1], s='lambda.min'))
+OOS_null_dev <- OLS_dev(test_set$g3_log_income, mean(training_set$g3_log_income))
+1-OOS_lasso_dev/OOS_null_dev
+
+#now ridge IS and OOS######################################################################################
+
+IS_ridge_dev <- OLS_dev(training_set$g3_log_income, predict(cv.ridge, training_set[,-1], s='lambda.min'))
+1-IS_ridge_dev/IS_null_dev
+
+OOS_ridge_dev<- OLS_dev(test_set$g3_log_income, predict(cv.ridge, test_set[,-1], s='lambda.min'))
+1-OOS_ridge_dev/OOS_null_dev
+
+set.seed(0)
+big_lasso_model <- glmnetUtils::cv.glmnet(g3_log_income ~ g2_log_income + g1_log_income + g3_educ + (g2_log_income + g1_log_income)^2 + g1_educ + g2_educ + (g1_educ + g3_educ + g2_educ)^2, data=training_set[,-1], nfold=4)
+
+#repeat with interactions
+Int_IS_dev <- OLS_dev(training_set$g3_log_income, predict(big_lasso_model, training_set[,-1], s='lambda.min'))
+IS_null_dev <- OLS_dev(training_set$g3_log_income, mean(training_set$g3_log_income))
+1-Int_IS_dev/IS_null_dev
+#big negative number
+Int_OOS_dev<- OLS_dev(test_set$g3_log_income, predict(big_lasso_model, test_set[,-1], s='lambda.min'))
+OOS_null_dev <- OLS_dev(test_set$g3_log_income, mean(training_set$g3_log_income))
+1-Int_OOS_dev/OOS_null_dev
+
+
+##############################################################################
+#comment on these graphs
+#Section 8 Graphs and Beta
+
+par(mfrow = c(1, 2))
+plot(cv.lassofold$glmnet, xvar = 'lambda')
+plot(cv.lassofold)
+
+par(mfrow = c(1, 2))
+plot(cv.ridge$glmnet, xvar = 'lambda')
+plot(cv.ridge)
+
+par(mfrow = c(1, 2))
+plot(big_lasso_model$glmnet, xvar = 'lambda')
+plot(big_lasso_model)
+
+par(mfrow = c(3, 2))
+plot(cv.lassofold$glmnet, xvar = 'lambda')
+plot(cv.lassofold)
+plot(cv.ridge$glmnet, xvar = 'lambda')
+plot(cv.ridge)
+plot(big_lasso_model$glmnet, xvar = 'lambda')
+plot(big_lasso_model)
+
+
+final_beta <- coef(big_lasso_model, s = 'lambda.min')[-1,]
+final_nonzeros <-final_beta[final_beta !=0]
+final_si <- sort(abs(final_nonzeros), decreasing = TRUE, index.return = TRUE)$ix
+final_nonzeros[final_si][1:3]
+
+final_beta[which.max(final_beta)]
+final_beta[which.min(final_beta)]
+mean(exp(data$g3_log_income))
+
+
+###########################################################
+#Section 9 Predictions
+
+Person_1 <- data[data$g3_id=='1',]
+pred_1 <- predict(big_lasso_model, newdata = training_set, s = 'lambda.min')
+p1_income <- pred_1[1]
+
+ActualInc1 <- data$g3_log_income[data$g3_id=='1']
+print(p1_income)
+print(ActualInc1)
+
+
+Person_1394 <- data[data$g3_id=='1394',]
+pred_1394 <- predict(big_lasso_model, newdata = training_set, s = 'lambda.min')
+p1394_income <- pred_1394[696]
+
+ActualInc696 <- data$g3_log_income[data$g3_id=='1394']
+print(p1394_income)
+print(ActualInc696)
+
+
+
+Person_1582 <- data[data$g3_id=='1582',]
+pred_1582 <- predict(big_lasso_model, newdata = training_set, s = 'lambda.min')
+p1582_income <- pred_1582[800]
+
+ActualInc1582 <- data$g3_log_income[data$g3_id=='1582']
+print(p1582_income)
+print(ActualInc1582)
+############################################################################################################################################
+## My Research Paper
+[Download the paper (PDF)](paper.pdf)
+
+
+
+
