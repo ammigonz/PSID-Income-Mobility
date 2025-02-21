@@ -9,7 +9,7 @@ Installation:
 This is very simple, I only have one R file and one CSV. The CSV can be found here:
 https://www.openicpsr.org/openicpsr/project/185941/version/V2/view?path=/openicpsr/185941/fcr:versions/V2/for_students.zip&type=file
 
-Usage
+Usage: 
 Download the csv above and replace my directory with yours
 and the code will run smothly
 
