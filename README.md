@@ -10,8 +10,7 @@ Usage
 Download the csv above and replace my directory with yours
 Code will run smothly
 
-Results 
-(Key findings, visuals, or outputs)
 
-Citations 
-(If referencing research papers)
+
+My research paper: 
+Grover_Gonzalez Final Paper.pdf
