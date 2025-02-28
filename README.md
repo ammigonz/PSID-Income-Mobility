@@ -1,6 +1,5 @@
 # PSID-Income-Mobility
 ### Predictive Modeling of Intergenerational Income
-Analyzed income mobility for the Panel Study of Income Dynamics dataset by building predictive models that leveraged demographic and familial variables. Conducted model selection in R of OLS, Lasso, and Ridge regressions through cross-validation and interaction terms to improve out-of-sample R². Visualized insights on the role of education and income mobility, highlighting predictive effects of educational attainment and intergenerational affluence.
 
 ## Summary:
 In my final year of undergrad at UC Santa Cruz, I took a class called Machine Learning for Economists. At this time I was already interested in Data Science, but had only Econometrics classes under my belt as an Economics major. Working on this project opened the door for me to pursue my passion for data and econometrics. The question I sought to answer is that of Generational Wealth and the american dream, an idea close to many of us.
