@@ -1,19 +1,52 @@
-# PSID-Income-Mobility
+# 📈 PSID-Income-Mobility  
 ### Predictive Modeling of Intergenerational Income
 
-## Summary:
-In my final year of undergrad at UC Santa Cruz, I took a class called Machine Learning for Economists. At this time I was already interested in Data Science, but had only Econometrics classes under my belt as an Economics major. Working on this project opened the door for me to pursue my passion for data and econometrics. The question I sought to answer is that of Generational Wealth and the american dream, an idea close to many of us.
+## 🧠 Project Overview
 
-Here I study the Panel Study of Income Dynamics dataset and want to know whether the income of a third generation American is based on personal and familial demographics? The American Dream is a concept that anyone, regardless of where they come from can achieve success and increase their economic status through their hard work. I analyzed income mobility by building predictive models that leveraged demographic and familial variables such as their education opportunities and family income. I conducted model selection in R of OLS, Lasso, and Ridge regressions through cross-validation and interaction terms to improve out-of-sample R². Finally the visualizations in my paper show insights on the role of education and income mobility, highlighting predictive effects of educational attainment and intergenerational affluence.
+This project was completed during my final year as an undergraduate at UC Santa Cruz for a course titled *Machine Learning for Economists*. At the time, I had a strong interest in data science, but my background was primarily in econometrics through my Economics major. This project was pivotal—it marked the beginning of my journey into the world of data and econometric modeling.
 
-## Installation:
-This is very simple, I only have one R file and one CSV. The CSV can be found here:
-https://www.openicpsr.org/openicpsr/project/185941/version/V2/view?path=/openicpsr/185941/fcr:versions/V2/for_students.zip&type=file
+The core question I explored: **Is the income of a third-generation American predictable based on personal and familial demographics?** Inspired by the concept of the *American Dream*, I set out to investigate income mobility across generations using real-world economic data.
 
-## Usage: 
-Download the csv above and replace my directory with yours
-and the code will run smothly
+## 📊 Data & Methodology
 
+The analysis is based on the **Panel Study of Income Dynamics (PSID)** dataset. I examined whether upward economic mobility could be predicted using features such as:
 
-## My research paper: 
-/docs/Grover_Gonzalez Final Paper.pdf
+- Family income history
+- Educational attainment
+- Demographic and household variables
+
+### Modeling Approach
+
+Using R, I built and compared multiple regression models:
+
+- **Ordinary Least Squares (OLS)**
+- **Lasso Regression**
+- **Ridge Regression**
+
+I incorporated interaction terms and used cross-validation to improve out-of-sample performance, specifically optimizing for **R²**. The final visualizations in the research paper highlight the strong predictive effects of education and family background on future income, shedding light on intergenerational wealth and mobility.
+
+## 📁 Installation & Setup
+
+This project is lightweight and easy to run. It includes just one `.R` script and one `.csv` file.
+
+### Data Download:
+Download the dataset directly from [OpenICPSR](https://www.openicpsr.org/openicpsr/project/185941/version/V2/view?path=/openicpsr/185941/fcr:versions/V2/for_students.zip&type=file)
+
+1. Extract the `.csv` file from the ZIP.
+2. Replace the file path in the `.R` script with your local directory.
+3. Run the script in R or RStudio.
+
+## ▶️ Usage
+
+Once you've downloaded the dataset and updated the path in the script, simply run the `.R` file to reproduce the analysis, model selection process, and visualizations.
+
+## 📄 Final Research Paper
+
+You can read the full analysis and conclusions in my final paper:
+
+📂 `/docs/Grover_Gonzalez Final Paper.pdf`
+
+## 🙋‍♀️ Author
+
+Amber Gonzalez-Pacheco  
+Data science enthusiast with a passion for econometrics, income equity, and social mobility research.
